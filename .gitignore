@@ -67,3 +67,9 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+PLAN.md
+BOOKS.md
+books/
+old/
+.harper-dictionary.txt
