@@ -14,7 +14,11 @@ enum class AircraftType {
   JetTrainer,
   JetFighter,
   MilitaryCargoOrBomber,
-  JetTransport
+  JetTransport,
+  UAVTacRecceAndUCAV,
+  UAVHighAltitude,
+  UAVSmall,
+  Count // hack to get enum class length for array
 };
 
 // Raymer Tables 3.3 & 3.4
