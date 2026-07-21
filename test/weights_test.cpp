@@ -1,6 +1,7 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <cmath>
+#include <limits>
 #include <stdexcept>
 #include <weights.hpp>
 
@@ -36,8 +37,7 @@ TEST_CASE("Empty Weight Fraction Calculations", "[compute_empty_weight_frac]") {
   }
 
   SECTION("Homebuilt - Metal / Wood") {
-    auto input =
-        build_input(AircraftType::HomebuiltMetalOrWood, 3500, false);
+    auto input = build_input(AircraftType::HomebuiltMetalOrWood, 3500, false);
     REQUIRE(compute_empty_weight_frac(input) ==
             Catch::Approx(0.57).margin(0.01));
 
@@ -127,8 +127,7 @@ TEST_CASE("Empty Weight Fraction Calculations", "[compute_empty_weight_frac]") {
   }
 
   SECTION("Military Cargo / Bomber") {
-    auto input =
-        build_input(AircraftType::MilitaryCargoOrBomber, 3500, false);
+    auto input = build_input(AircraftType::MilitaryCargoOrBomber, 3500, false);
     REQUIRE(compute_empty_weight_frac(input) ==
             Catch::Approx(0.53).margin(0.01));
 
@@ -184,10 +183,13 @@ TEST_CASE("Empty Weight Fraction Calculations", "[compute_empty_weight_frac]") {
     input.reqs.design_weight = -3500;
     REQUIRE_THROWS_AS(compute_empty_weight_frac(input), std::invalid_argument);
 
-    input.reqs.design_weight = NAN;
+    input.reqs.design_weight = std::numeric_limits<float>::quiet_NaN();
     REQUIRE_THROWS_AS(compute_empty_weight_frac(input), std::invalid_argument);
 
-    input.reqs.design_weight = INFINITY;
+    input.reqs.design_weight = std::numeric_limits<float>::infinity();
+    REQUIRE_THROWS_AS(compute_empty_weight_frac(input), std::invalid_argument);
+
+    input.reqs.design_weight = -std::numeric_limits<float>::infinity();
     REQUIRE_THROWS_AS(compute_empty_weight_frac(input), std::invalid_argument);
   }
 }
