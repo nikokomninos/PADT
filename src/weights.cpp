@@ -50,7 +50,7 @@ constexpr std::array<FuelFrac, static_cast<size_t>(EngineType::Count)>
 // A = Constant
 // C = Constant
 // W_0 = Design gross takeoff weight
-// K_s = Variable sweep constant
+// K_vs = Variable sweep constant
 float compute_empty_weight_frac(const InitialSizingInput &input) {
   const float W_0 = input.reqs.design_weight;
 
@@ -62,9 +62,9 @@ float compute_empty_weight_frac(const InitialSizingInput &input) {
       empty_weight_frac_table[static_cast<size_t>(input.config.aircraft_type)]);
   const float C = std::get<1>(
       empty_weight_frac_table[static_cast<size_t>(input.config.aircraft_type)]);
-  const float K_us = input.config.is_swing_wing ? 1.04f : 1.0f;
+  const float K_vs = input.config.is_swing_wing ? 1.04f : 1.0f;
 
-  const float empty_weight_frac = A * std::pow(W_0, C) * K_us;
+  const float empty_weight_frac = A * std::pow(W_0, C) * K_vs;
 
   return empty_weight_frac;
 }
