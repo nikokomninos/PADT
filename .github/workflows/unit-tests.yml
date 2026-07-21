@@ -1,0 +1,29 @@
+name: Unit Tests
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / CMake / Catch2
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake --preset debug
+
+      - name: Build tests
+        run: cmake --build --preset debug-tests
+
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
