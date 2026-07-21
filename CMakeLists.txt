@@ -26,10 +26,37 @@ target_include_directories(PADT
 )
 
 if(MSVC)
-    target_compile_options(PADT PRIVATE /W4)
+  target_compile_options(PADT PRIVATE /W4)
 else()
-    target_compile_options(PADT PRIVATE -Wall -Wextra -Wpedantic)
+  target_compile_options(PADT PRIVATE -Wall -Wextra -Wpedantic)
 endif()
+
+include(CTest)
+
+if(BUILD_TESTING)
+  include(FetchContent)
+  FetchContent_Declare(
+  Catch2
+  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+  GIT_TAG v3.15.2
+)
+  FetchContent_MakeAvailable(Catch2)
+
+  add_executable(PADT_tests
+        test/weights_test.cpp
+    )
+
+  target_link_libraries(PADT_tests
+        PRIVATE
+            PADT::PADT
+            Catch2::Catch2WithMain
+    )
+
+  list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
+  include(Catch)
+  catch_discover_tests(PADT_tests)
+endif()
+
 
 add_executable(PADT_example examples/main.cpp)
 target_link_libraries(PADT_example PRIVATE PADT::PADT)

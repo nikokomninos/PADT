@@ -1,0 +1,32 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "displayName": "Debug example",
+      "configurePreset": "debug",
+      "targets": [
+        "PADT_example"
+      ]
+    },
+    {
+      "name": "debug-tests",
+      "displayName": "Debug tests",
+      "configurePreset": "debug",
+      "targets": [
+        "PADT_tests"
+      ]
+    }
+  ]
+}

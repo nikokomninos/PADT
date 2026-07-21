@@ -1,6 +1,6 @@
 #pragma once
 
-// Raymer Table 3.1
+// Raymer Table 3.1 - Aircraft types
 enum class AircraftType {
   SailplaneUnpowered,
   SailplanePowered,
@@ -29,13 +29,16 @@ enum class EngineType {
   // PistonPropFixedPitch,
   // PistonPropVariablePitch,
   // Turboprop,
+  Count
 };
 
+// Aircraft type configuration
 struct AircraftConfig {
   AircraftType aircraft_type;
   bool is_swing_wing;
 };
 
+// Aircraft/mission requirements configuration
 struct AircraftRequirements {
   float R; // range [feet]
   EngineType engine_type;
@@ -46,10 +49,11 @@ struct AircraftRequirements {
   float design_weight; // design weight [lbs]
 };
 
+// Complete initial sizing input/requirements
 struct InitialSizingInput {
   AircraftConfig config;
   AircraftRequirements reqs;
   float payload_weight; // payload weight [lbs]
 };
 
-float compute_empty_weight_frac(InitialSizingInput &input);
+float compute_empty_weight_frac(const InitialSizingInput &input);
