@@ -129,30 +129,30 @@ float compute_fuel_frac(const InitialSizingInput &input) {
     ld_loiter = input.reqs.ld;
   }
 
-  const float C_cruise =
+  const float C_cruise{
       std::get<0>(
           fuel_frac_table[static_cast<size_t>(input.reqs.engine_type)]) /
-      3600.0f;
-  const float C_loiter =
+      3600.0f};
+  const float C_loiter{
       std::get<1>(
           fuel_frac_table[static_cast<size_t>(input.reqs.engine_type)]) /
-      3600.0f;
+      3600.0f};
 
   const float fuel_frac_to = 0.970 * number_of_takeoffs;
   const float fuel_frac_climb = 0.985 * number_of_climbs;
   const float fuel_frac_ldg = 0.995 * number_of_landings;
 
-  const float fuel_frac_cruise =
+  const float fuel_frac_cruise{
       std::exp(-(input.reqs.R * C_cruise) / (input.reqs.v * ld_cruise)) *
-      number_of_cruises;
+      number_of_cruises};
 
-  const float fuel_frac_loiter =
+  const float fuel_frac_loiter{
       std::exp(-(input.reqs.loiter_time * C_loiter) / ld_loiter) *
-      number_of_loiters;
+      number_of_loiters};
 
-  const float fuel_frac_mission = fuel_frac_to * fuel_frac_climb *
-                                  fuel_frac_cruise * fuel_frac_loiter *
-                                  fuel_frac_ldg;
+  const float fuel_frac_mission{fuel_frac_to * fuel_frac_climb *
+                                fuel_frac_cruise * fuel_frac_loiter *
+                                fuel_frac_ldg};
   const float fuel_frac = 1.06 * (1 - fuel_frac_mission);
 
   return fuel_frac;
