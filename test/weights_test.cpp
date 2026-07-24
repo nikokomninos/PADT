@@ -187,7 +187,7 @@ TEST_CASE("Empty Weight Fraction Calculations", "[compute_empty_weight_frac]") {
   SECTION("Invalid Requirement Arguments") {
     auto input =
         empty_weight_frac_input(AircraftType::SailplaneUnpowered, 3500, false);
-    const float invalid_values[] = {
+    constexpr float invalid_values[] = {
         0.0f,
         -1.0f,
         std::numeric_limits<float>::quiet_NaN(),
