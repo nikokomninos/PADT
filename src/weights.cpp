@@ -2,8 +2,9 @@
 
 #include <array>
 #include <cmath>
-#include <cstdio>
 #include <stdexcept>
+#include <string>
+#include <string_view>
 #include <utility>
 
 namespace {
@@ -39,6 +40,21 @@ constexpr std::array<FuelFrac, static_cast<size_t>(EngineType::Count)>
         FuelFrac(0.5f, 0.4f), // HighBypassTurbofan
 };
 
+// Helper to check an argument for a positive count
+void require_positive(float value, std::string_view name) {
+  if (!std::isfinite(value) || value <= 0.0f) {
+    throw std::invalid_argument(std::string{name} +
+                                " must be greater than 0.0");
+  }
+}
+
+// Helper to check an argument for a nonzero count
+void require_nonzero_count(unsigned int value, std::string_view name) {
+  if (value == 0) {
+    throw std::invalid_argument(std::string{name} + " must be at least 1");
+  }
+}
+
 } // namespace
 
 // Computes the empty weight fraction:
@@ -52,19 +68,17 @@ constexpr std::array<FuelFrac, static_cast<size_t>(EngineType::Count)>
 // W_0 = Design gross takeoff weight
 // K_vs = Variable sweep constant
 float compute_empty_weight_frac(const InitialSizingInput &input) {
-  const float W_0 = input.reqs.design_weight;
+  const float W_0{input.reqs.design_weight};
 
-  if (!std::isfinite(W_0) || W_0 <= 0.0f) {
-    throw std::invalid_argument("design_weight must be greater than 0.0");
-  }
+  require_positive(W_0, "design_weight");
 
-  const float A = std::get<0>(
-      empty_weight_frac_table[static_cast<size_t>(input.config.aircraft_type)]);
-  const float C = std::get<1>(
-      empty_weight_frac_table[static_cast<size_t>(input.config.aircraft_type)]);
-  const float K_vs = input.config.is_swing_wing ? 1.04f : 1.0f;
+  const float A{std::get<0>(empty_weight_frac_table[static_cast<size_t>(
+      input.config.aircraft_type)])};
+  const float C{std::get<1>(empty_weight_frac_table[static_cast<size_t>(
+      input.config.aircraft_type)])};
+  const float K_vs{input.config.is_swing_wing ? 1.04f : 1.0f};
 
-  const float empty_weight_frac = A * std::pow(W_0, C) * K_vs;
+  const float empty_weight_frac{A * std::pow(W_0, C) * K_vs};
 
   return empty_weight_frac;
 }
@@ -75,7 +89,7 @@ float compute_empty_weight_frac(const InitialSizingInput &input) {
 //
 // W_mission = W_to * W_climb * W_cruise * W_loiter * W_ldg
 //
-// Where: 
+// Where:
 //
 // W_to = W_climb = W_ldg = const * number of times the phase occurs
 //
@@ -88,56 +102,58 @@ float compute_empty_weight_frac(const InitialSizingInput &input) {
 // l/d - lift to drag ratio
 // E - loiter time [s]
 float compute_fuel_frac(const InitialSizingInput &input) {
-    const int number_of_takeoffs = input.mission.num_of_to;
-    const int number_of_climbs = input.mission.num_of_climb;
-    const int number_of_cruises = input.mission.num_of_cruise;
-    const int number_of_loiters = input.mission.num_of_loiter;
-    const int number_of_landings = input.mission.num_of_ldg;
-    float ld_cruise;
-    float ld_loiter;
+  const unsigned int number_of_takeoffs{input.mission.num_of_to};
+  const unsigned int number_of_climbs{input.mission.num_of_climb};
+  const unsigned int number_of_cruises{input.mission.num_of_cruise};
+  const unsigned int number_of_loiters{input.mission.num_of_loiter};
+  const unsigned int number_of_landings{input.mission.num_of_ldg};
+  // TODO default back to declaration after other engine types
+  // are implemented
+  float ld_cruise{0.0f};
+  float ld_loiter{0.0f};
 
-    if (input.reqs.engine_type == EngineType::HighBypassTurbofan || input.reqs.engine_type == EngineType::LowBypassTurbofan 
-        || input.reqs.engine_type == EngineType::PureTurbojet) {
-        ld_cruise = 0.866*input.reqs.ld;
-        ld_loiter = input.reqs.ld;
-    }
+  require_nonzero_count(number_of_takeoffs, "num_of_to");
+  require_nonzero_count(number_of_climbs, "num_of_climb");
+  require_nonzero_count(number_of_cruises, "num_of_cruise");
+  require_nonzero_count(number_of_loiters, "num_of_loiter");
+  require_nonzero_count(number_of_landings, "num_of_ldg");
+  require_positive(input.reqs.R, "R");
+  require_positive(input.reqs.v, "v");
+  require_positive(input.reqs.ld, "ld");
+  require_positive(input.reqs.loiter_time, "loiter_time");
 
+  if (input.reqs.engine_type == EngineType::HighBypassTurbofan ||
+      input.reqs.engine_type == EngineType::LowBypassTurbofan ||
+      input.reqs.engine_type == EngineType::PureTurbojet) {
+    ld_cruise = 0.866 * input.reqs.ld;
+    ld_loiter = input.reqs.ld;
+  }
 
-    if (!std::isfinite(number_of_takeoffs) || number_of_takeoffs <= 0) {
-        throw std::invalid_argument("there must be at least one takoff");
-    }
+  const float C_cruise =
+      std::get<0>(
+          fuel_frac_table[static_cast<size_t>(input.reqs.engine_type)]) /
+      3600.0f;
+  const float C_loiter =
+      std::get<1>(
+          fuel_frac_table[static_cast<size_t>(input.reqs.engine_type)]) /
+      3600.0f;
 
-    if (!std::isfinite(number_of_climbs) || number_of_climbs <= 0) {
-        throw std::invalid_argument("there must be at least one climb");
-    }
+  const float fuel_frac_to = 0.970 * number_of_takeoffs;
+  const float fuel_frac_climb = 0.985 * number_of_climbs;
+  const float fuel_frac_ldg = 0.995 * number_of_landings;
 
-    if (!std::isfinite(number_of_cruises) || number_of_cruises <= 0) {
-        throw std::invalid_argument("there must be at least one cruise");
-    }
+  const float fuel_frac_cruise =
+      std::exp(-(input.reqs.R * C_cruise) / (input.reqs.v * ld_cruise)) *
+      number_of_cruises;
 
-    if (!std::isfinite(number_of_loiters) || number_of_loiters <= 0) {
-        throw std::invalid_argument("there must be at least one loiter");
-    }
+  const float fuel_frac_loiter =
+      std::exp(-(input.reqs.loiter_time * C_loiter) / ld_loiter) *
+      number_of_loiters;
 
-    if (!std::isfinite(number_of_landings) || number_of_landings <= 0) {
-        throw std::invalid_argument("there must be at least one landing");
-    }
+  const float fuel_frac_mission = fuel_frac_to * fuel_frac_climb *
+                                  fuel_frac_cruise * fuel_frac_loiter *
+                                  fuel_frac_ldg;
+  const float fuel_frac = 1.06 * (1 - fuel_frac_mission);
 
-    const float C_cruise = std::get<0>(
-      fuel_frac_table[static_cast<size_t>(input.reqs.engine_type)])/3600.0f;
-    const float C_loiter = std::get<1>(
-      fuel_frac_table[static_cast<size_t>(input.reqs.engine_type)])/3600.0f;
-
-    const float fuel_frac_to = 0.970*number_of_takeoffs;
-    const float fuel_frac_climb = 0.985*number_of_climbs;
-    const float fuel_frac_ldg = 0.995*number_of_landings;
-
-    const float fuel_frac_cruise = std::exp(-(input.reqs.R*C_cruise)/(input.reqs.v*ld_cruise))*number_of_cruises; 
-
-    const float fuel_frac_loiter = std::exp(-(input.reqs.loiter_time*C_loiter)/ld_loiter)*number_of_loiters;
-
-    const float fuel_frac_mission = fuel_frac_to*fuel_frac_climb*fuel_frac_cruise*fuel_frac_loiter*fuel_frac_ldg;
-    const float fuel_frac = 1.06*(1-fuel_frac_mission);
-
-    return fuel_frac;
+  return fuel_frac;
 }

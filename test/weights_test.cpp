@@ -10,14 +10,13 @@ InitialSizingInput empty_weight_frac_input(AircraftType aircraft_type, float des
   return {
       {aircraft_type, swing_wing},
       {0.0f, EngineType::PureTurbojet, 0.0f, 0.0f, 0.0f, 0.0f, design_weight},
-      0.0f};
+      0};
 }
 
 InitialSizingInput fuel_frac_input(EngineType engine_type, MissionLegs mission) {
         return {
                 {AircraftType::JetFighter, false},
                 {15000.0f, engine_type, 300.0, 15.0f, 18000.0f, 0.0f},
-                0.0f,
                 mission
         };
 }
@@ -185,21 +184,24 @@ TEST_CASE("Empty Weight Fraction Calculations", "[compute_empty_weight_frac]") {
             Catch::Approx(0.62).margin(0.01));
   }
 
-  SECTION("Invalid design_weight Arguments") {
-    auto input = empty_weight_frac_input(AircraftType::SailplaneUnpowered, 0.0, false);
-    REQUIRE_THROWS_AS(compute_empty_weight_frac(input), std::invalid_argument);
+  SECTION("Invalid Requirement Arguments") {
+    auto input =
+        empty_weight_frac_input(AircraftType::SailplaneUnpowered, 3500, false);
+    const float invalid_values[] = {
+        0.0f,
+        -1.0f,
+        std::numeric_limits<float>::quiet_NaN(),
+        std::numeric_limits<float>::infinity(),
+        -std::numeric_limits<float>::infinity(),
+    };
 
-    input.reqs.design_weight = -3500;
-    REQUIRE_THROWS_AS(compute_empty_weight_frac(input), std::invalid_argument);
-
-    input.reqs.design_weight = std::numeric_limits<float>::quiet_NaN();
-    REQUIRE_THROWS_AS(compute_empty_weight_frac(input), std::invalid_argument);
-
-    input.reqs.design_weight = std::numeric_limits<float>::infinity();
-    REQUIRE_THROWS_AS(compute_empty_weight_frac(input), std::invalid_argument);
-
-    input.reqs.design_weight = -std::numeric_limits<float>::infinity();
-    REQUIRE_THROWS_AS(compute_empty_weight_frac(input), std::invalid_argument);
+    for (const float invalid_value : invalid_values) {
+      input = empty_weight_frac_input(AircraftType::SailplaneUnpowered, 3500,
+                                      false);
+      input.reqs.design_weight = invalid_value;
+      REQUIRE_THROWS_AS(compute_empty_weight_frac(input),
+                        std::invalid_argument);
+    }
   }
 }
 
@@ -222,25 +224,59 @@ TEST_CASE("Fuel Fraction Calculation", "[compute_fuel_frac]") {
             Catch::Approx(0.18).margin(0.01)); 
   }
 
-  SECTION("Invalid design_weight Arguments") {
+  SECTION("Invalid Mission Count Arguments") {
     auto input = fuel_frac_input(EngineType::HighBypassTurbofan, {});
     REQUIRE_THROWS_AS(compute_fuel_frac(input), std::invalid_argument);
 
-
-    input.mission.num_of_to = -1;
+    input.mission = {1, 1, 1, 1, 1};
+    input.mission.num_of_to = 0;
     REQUIRE_THROWS_AS(compute_fuel_frac(input), std::invalid_argument);
 
-
-    input.mission.num_of_to = std::numeric_limits<float>::quiet_NaN();
+    input.mission = {1, 1, 1, 1, 1};
+    input.mission.num_of_climb = 0;
     REQUIRE_THROWS_AS(compute_fuel_frac(input), std::invalid_argument);
 
-
-    input.mission.num_of_to = std::numeric_limits<float>::infinity();
+    input.mission = {1, 1, 1, 1, 1};
+    input.mission.num_of_cruise = 0;
     REQUIRE_THROWS_AS(compute_fuel_frac(input), std::invalid_argument);
 
-
-    input.mission.num_of_to = -std::numeric_limits<float>::infinity();
+    input.mission = {1, 1, 1, 1, 1};
+    input.mission.num_of_loiter = 0;
     REQUIRE_THROWS_AS(compute_fuel_frac(input), std::invalid_argument);
+
+    input.mission = {1, 1, 1, 1, 1};
+    input.mission.num_of_ldg = 0;
+    REQUIRE_THROWS_AS(compute_fuel_frac(input), std::invalid_argument);
+  }
+
+  SECTION("Invalid Requirement Arguments") {
+    auto input =
+        fuel_frac_input(EngineType::HighBypassTurbofan, {1, 1, 1, 1, 1});
+    constexpr float invalid_values[] = {
+        0.0f,
+        -1.0f,
+        std::numeric_limits<float>::quiet_NaN(),
+        std::numeric_limits<float>::infinity(),
+        -std::numeric_limits<float>::infinity(),
+    };
+
+    for (const float invalid_value : invalid_values) {
+      input = fuel_frac_input(EngineType::HighBypassTurbofan, {1, 1, 1, 1, 1});
+      input.reqs.R = invalid_value;
+      REQUIRE_THROWS_AS(compute_fuel_frac(input), std::invalid_argument);
+
+      input = fuel_frac_input(EngineType::HighBypassTurbofan, {1, 1, 1, 1, 1});
+      input.reqs.v = invalid_value;
+      REQUIRE_THROWS_AS(compute_fuel_frac(input), std::invalid_argument);
+
+      input = fuel_frac_input(EngineType::HighBypassTurbofan, {1, 1, 1, 1, 1});
+      input.reqs.ld = invalid_value;
+      REQUIRE_THROWS_AS(compute_fuel_frac(input), std::invalid_argument);
+
+      input = fuel_frac_input(EngineType::HighBypassTurbofan, {1, 1, 1, 1, 1});
+      input.reqs.loiter_time = invalid_value;
+      REQUIRE_THROWS_AS(compute_fuel_frac(input), std::invalid_argument);
+    }
   }
 
 }

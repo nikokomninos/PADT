@@ -51,21 +51,20 @@ struct AircraftRequirements {
 
 // Mission leg numbers and types
 struct MissionLegs {
-  int num_of_to; // number of takoffs
-  int num_of_climb; // number of climbs
-  int num_of_cruise; // number of cruises
-  int num_of_loiter; // number of loiters
-  int num_of_ldg; // number of landings
+  unsigned int num_of_to; // number of takoffs
+  unsigned int num_of_climb; // number of climbs
+  unsigned int num_of_cruise; // number of cruises
+  unsigned int num_of_loiter; // number of loiters
+  unsigned int num_of_ldg; // number of landings
 };
 
 // Complete initial sizing input/requirements
 struct InitialSizingInput {
   AircraftConfig config;
   AircraftRequirements reqs;
-  float payload_weight; // payload weight [lbs]
   MissionLegs mission;
+  float payload_weight; // payload weight [lbs]
 };
 
 float compute_empty_weight_frac(const InitialSizingInput &input);
-
 float compute_fuel_frac(const InitialSizingInput &input);
