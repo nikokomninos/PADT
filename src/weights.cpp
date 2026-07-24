@@ -157,3 +157,30 @@ float compute_fuel_frac(const InitialSizingInput &input) {
 
   return fuel_frac;
 }
+
+
+float compute_initial_weight(InitialSizingInput &input) { 
+    float err = 1.0f;
+    int iter = 0;
+    float empty_weight_frac;
+    float fuel_frac;
+    float initial_weight;
+
+    while (err >= 1e-4 && iter < 20) {
+        empty_weight_frac = compute_empty_weight_frac(input);
+        fuel_frac = compute_fuel_frac(input);
+
+        initial_weight = input.payload_weight/(1 - fuel_frac - empty_weight_frac);
+
+        err = std::abs((initial_weight - input.reqs.design_weight)/input.reqs.design_weight);
+
+        input.reqs.design_weight = initial_weight;
+        iter += 1;
+    }
+
+    if (iter == 20) {
+        throw std::runtime_error("max iterations exceded"); 
+    }
+
+    return initial_weight; 
+}

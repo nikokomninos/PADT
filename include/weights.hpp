@@ -68,3 +68,5 @@ struct InitialSizingInput {
 
 float compute_empty_weight_frac(const InitialSizingInput &input);
 float compute_fuel_frac(const InitialSizingInput &input);
+
+float compute_initial_weight(InitialSizingInput &input);
