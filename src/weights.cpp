@@ -181,7 +181,7 @@ float InitialAircraftSizing::compute_initial_weight() {
   auto iter{0u};
   auto initial_weight{m_reqs.design_weight};
 
-  while (err >= tolerance && iter < max_iterations) {
+  while (err >= tolerance) {
     const auto empty_weight_frac = compute_empty_weight_frac();
     const auto fuel_frac = compute_fuel_frac();
     const auto denominator = 1.0f - fuel_frac - empty_weight_frac;
@@ -198,10 +198,10 @@ float InitialAircraftSizing::compute_initial_weight() {
 
     m_reqs.design_weight = initial_weight;
     iter += 1;
-  }
 
-  if (err >= tolerance) {
-    throw std::runtime_error("max iterations exceeded");
+    if (iter >= max_iterations) {
+      throw std::runtime_error("max iterations exceeded");
+    }
   }
 
   return initial_weight;
