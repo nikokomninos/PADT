@@ -163,17 +163,35 @@ float InitialAircraftSizing::compute_fuel_frac() const {
   return fuel_frac;
 }
 
-// TODO reevaluate function, add tests
+// Iteratively solves for the initial aircraft weight:
+//
+// W_0 = W_payload / (1 - W_f / W_0 - W_e / W_0)
+//
+// The estimate starts from the configured design weight and updates that
+// working design weight until the relative change is within tolerance. Throws
+// if the inputs cannot produce a positive finite solution or if the estimate
+// does not converge within the iteration limit.
 float InitialAircraftSizing::compute_initial_weight() {
+  constexpr auto tolerance{1e-4f};
+  constexpr auto max_iterations{20u};
+
+  require_positive(m_payload_weight, "payload_weight");
+
   auto err{1.0f};
   auto iter{0u};
-  auto initial_weight{0.0f};
+  auto initial_weight{m_reqs.design_weight};
 
-  while (err >= 1e-4 && iter < 20) {
+  while (err >= tolerance && iter < max_iterations) {
     const auto empty_weight_frac = compute_empty_weight_frac();
     const auto fuel_frac = compute_fuel_frac();
+    const auto denominator = 1.0f - fuel_frac - empty_weight_frac;
 
-    initial_weight = m_payload_weight / (1 - fuel_frac - empty_weight_frac);
+    if (!std::isfinite(denominator) || denominator <= 0.0f) {
+      throw std::domain_error(
+          "fuel and empty weight fractions must sum to less than 1.0");
+    }
+
+    initial_weight = m_payload_weight / denominator;
 
     err = std::abs((initial_weight - m_reqs.design_weight) /
                    m_reqs.design_weight);
@@ -182,10 +200,8 @@ float InitialAircraftSizing::compute_initial_weight() {
     iter += 1;
   }
 
-  // This should never be reached since the loop ends
-  // at iter == 19
-  if (iter == 20) {
-    throw std::runtime_error("max iterations exceded");
+  if (err >= tolerance) {
+    throw std::runtime_error("max iterations exceeded");
   }
 
   return initial_weight;

@@ -27,6 +27,16 @@ InitialAircraftSizing fuel_frac_sizer(AircraftRequirements reqs) {
   return {{AircraftType::JetFighter, false}, reqs, {1, 1, 1, 1, 1}, 0.0f};
 }
 
+InitialAircraftSizing initial_weight_sizer(AircraftType aircraft_type,
+                                           bool swing_wing, float design_weight,
+                                           float payload_weight) {
+  return {{aircraft_type, swing_wing},
+          {15000.0f, EngineType::HighBypassTurbofan, 300.0f, 15.0f, 18000.0f,
+           0.0f, design_weight},
+          {1, 1, 1, 1, 1},
+          payload_weight};
+}
+
 } // namespace
 
 TEST_CASE("Empty Weight Fraction Calculations", "[compute_empty_weight_frac]") {
@@ -292,5 +302,38 @@ TEST_CASE("Fuel Fraction Calculation", "[compute_fuel_frac]") {
       REQUIRE_THROWS_AS(fuel_frac_sizer(reqs).compute_fuel_frac(),
                         std::invalid_argument);
     }
+  }
+}
+
+TEST_CASE("Initial Weight Calculation", "[compute_initial_weight]") {
+  SECTION("Converges") {
+    REQUIRE(initial_weight_sizer(AircraftType::JetTransport, false, 100000.0f,
+                                 20000.0f)
+                .compute_initial_weight() ==
+            Catch::Approx(67142.0f).margin(1.0f));
+  }
+
+  SECTION("Invalid Payload Weight") {
+    constexpr float invalid_values[] = {
+        0.0f,
+        -1.0f,
+        std::numeric_limits<float>::quiet_NaN(),
+        std::numeric_limits<float>::infinity(),
+        -std::numeric_limits<float>::infinity(),
+    };
+
+    for (const float invalid_value : invalid_values) {
+      REQUIRE_THROWS_AS(initial_weight_sizer(AircraftType::JetTransport, false,
+                                             100000.0f, invalid_value)
+                            .compute_initial_weight(),
+                        std::invalid_argument);
+    }
+  }
+
+  SECTION("Invalid Weight Fraction Sum") {
+    REQUIRE_THROWS_AS(
+        initial_weight_sizer(AircraftType::JetFighter, true, 3500.0f, 1000.0f)
+            .compute_initial_weight(),
+        std::domain_error);
   }
 }
