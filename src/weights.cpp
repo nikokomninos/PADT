@@ -57,6 +57,13 @@ void require_nonzero_count(unsigned int value, std::string_view name) {
 
 } // namespace
 
+InitialAircraftSizing::InitialAircraftSizing(AircraftConfig config,
+                                             AircraftRequirements reqs,
+                                             MissionLegs mission,
+                                             float payload_weight)
+    : m_config{config}, m_reqs{reqs}, m_mission{mission},
+      m_payload_weight{payload_weight} {}
+
 // Computes the empty weight fraction:
 //
 // W_e / W_0 = A * (W_0)^C * K_s
@@ -67,16 +74,16 @@ void require_nonzero_count(unsigned int value, std::string_view name) {
 // C = Constant
 // W_0 = Design gross takeoff weight
 // K_vs = Variable sweep constant
-float compute_empty_weight_frac(const InitialSizingInput &input) {
-  const auto W_0{input.reqs.design_weight};
+float InitialAircraftSizing::compute_empty_weight_frac() const {
+  const auto W_0{m_reqs.design_weight};
 
   require_positive(W_0, "design_weight");
 
-  const auto A{std::get<0>(empty_weight_frac_table[static_cast<size_t>(
-      input.config.aircraft_type)])};
-  const auto C{std::get<1>(empty_weight_frac_table[static_cast<size_t>(
-      input.config.aircraft_type)])};
-  const auto K_vs{input.config.is_swing_wing ? 1.04f : 1.0f};
+  const auto A{std::get<0>(
+      empty_weight_frac_table[static_cast<size_t>(m_config.aircraft_type)])};
+  const auto C{std::get<1>(
+      empty_weight_frac_table[static_cast<size_t>(m_config.aircraft_type)])};
+  const auto K_vs{m_config.is_swing_wing ? 1.04f : 1.0f};
 
   const auto empty_weight_frac{A * std::pow(W_0, C) * K_vs};
 
@@ -101,12 +108,12 @@ float compute_empty_weight_frac(const InitialSizingInput &input) {
 // v - airspeed [ft/s]
 // l/d - lift to drag ratio
 // E - loiter time [s]
-float compute_fuel_frac(const InitialSizingInput &input) {
-  const auto number_of_takeoffs{input.mission.num_of_to};
-  const auto number_of_climbs{input.mission.num_of_climb};
-  const auto number_of_cruises{input.mission.num_of_cruise};
-  const auto number_of_loiters{input.mission.num_of_loiter};
-  const auto number_of_landings{input.mission.num_of_ldg};
+float InitialAircraftSizing::compute_fuel_frac() const {
+  const auto number_of_takeoffs{m_mission.num_of_to};
+  const auto number_of_climbs{m_mission.num_of_climb};
+  const auto number_of_cruises{m_mission.num_of_cruise};
+  const auto number_of_loiters{m_mission.num_of_loiter};
+  const auto number_of_landings{m_mission.num_of_ldg};
   // TODO default back to declaration after other engine types
   // are implemented
   auto ld_cruise{0.0f};
@@ -117,25 +124,23 @@ float compute_fuel_frac(const InitialSizingInput &input) {
   require_nonzero_count(number_of_cruises, "num_of_cruise");
   require_nonzero_count(number_of_loiters, "num_of_loiter");
   require_nonzero_count(number_of_landings, "num_of_ldg");
-  require_positive(input.reqs.R, "R");
-  require_positive(input.reqs.v, "v");
-  require_positive(input.reqs.ld, "ld");
-  require_positive(input.reqs.loiter_time, "loiter_time");
+  require_positive(m_reqs.R, "R");
+  require_positive(m_reqs.v, "v");
+  require_positive(m_reqs.ld, "ld");
+  require_positive(m_reqs.loiter_time, "loiter_time");
 
-  if (input.reqs.engine_type == EngineType::HighBypassTurbofan ||
-      input.reqs.engine_type == EngineType::LowBypassTurbofan ||
-      input.reqs.engine_type == EngineType::PureTurbojet) {
-    ld_cruise = 0.866f * input.reqs.ld;
-    ld_loiter = input.reqs.ld;
+  if (m_reqs.engine_type == EngineType::HighBypassTurbofan ||
+      m_reqs.engine_type == EngineType::LowBypassTurbofan ||
+      m_reqs.engine_type == EngineType::PureTurbojet) {
+    ld_cruise = 0.866f * m_reqs.ld;
+    ld_loiter = m_reqs.ld;
   }
 
   const auto C_cruise{
-      std::get<0>(
-          fuel_frac_table[static_cast<size_t>(input.reqs.engine_type)]) /
+      std::get<0>(fuel_frac_table[static_cast<size_t>(m_reqs.engine_type)]) /
       3600.0f};
   const auto C_loiter{
-      std::get<1>(
-          fuel_frac_table[static_cast<size_t>(input.reqs.engine_type)]) /
+      std::get<1>(fuel_frac_table[static_cast<size_t>(m_reqs.engine_type)]) /
       3600.0f};
 
   const auto fuel_frac_to = 0.970f * number_of_takeoffs;
@@ -143,11 +148,11 @@ float compute_fuel_frac(const InitialSizingInput &input) {
   const auto fuel_frac_ldg = 0.995f * number_of_landings;
 
   const auto fuel_frac_cruise{
-      std::exp(-(input.reqs.R * C_cruise) / (input.reqs.v * ld_cruise)) *
+      std::exp(-(m_reqs.R * C_cruise) / (m_reqs.v * ld_cruise)) *
       number_of_cruises};
 
   const auto fuel_frac_loiter{
-      std::exp(-(input.reqs.loiter_time * C_loiter) / ld_loiter) *
+      std::exp(-(m_reqs.loiter_time * C_loiter) / ld_loiter) *
       number_of_loiters};
 
   const auto fuel_frac_mission{fuel_frac_to * fuel_frac_climb *
@@ -159,21 +164,21 @@ float compute_fuel_frac(const InitialSizingInput &input) {
 }
 
 // TODO reevaluate function, add tests
-float compute_initial_weight(InitialSizingInput &input) {
+float InitialAircraftSizing::compute_initial_weight() {
   auto err{1.0f};
   auto iter{0u};
   auto initial_weight{0.0f};
 
   while (err >= 1e-4 && iter < 20) {
-    const auto empty_weight_frac = compute_empty_weight_frac(input);
-    const auto fuel_frac = compute_fuel_frac(input);
+    const auto empty_weight_frac = compute_empty_weight_frac();
+    const auto fuel_frac = compute_fuel_frac();
 
-    initial_weight = input.payload_weight / (1 - fuel_frac - empty_weight_frac);
+    initial_weight = m_payload_weight / (1 - fuel_frac - empty_weight_frac);
 
-    err = std::abs((initial_weight - input.reqs.design_weight) /
-                   input.reqs.design_weight);
+    err = std::abs((initial_weight - m_reqs.design_weight) /
+                   m_reqs.design_weight);
 
-    input.reqs.design_weight = initial_weight;
+    m_reqs.design_weight = initial_weight;
     iter += 1;
   }
 
