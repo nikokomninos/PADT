@@ -42,163 +42,163 @@ InitialAircraftSizing initial_weight_sizer(AircraftType aircraft_type,
 TEST_CASE("Empty Weight Fraction Calculations", "[compute_empty_weight_frac]") {
   SECTION("Sailplane - Unpowered") {
     REQUIRE(
-        empty_weight_frac_sizer(AircraftType::SailplaneUnpowered, 3500, false)
-            .compute_empty_weight_frac() == Catch::Approx(0.57).margin(0.01));
+        empty_weight_frac_sizer(AircraftType::SailplaneUnpowered, 3500.0f, false)
+            .compute_empty_weight_frac() == Catch::Approx(0.57f).margin(0.01f));
 
     REQUIRE(
-        empty_weight_frac_sizer(AircraftType::SailplaneUnpowered, 3500, true)
-            .compute_empty_weight_frac() == Catch::Approx(0.59).margin(0.01));
+        empty_weight_frac_sizer(AircraftType::SailplaneUnpowered, 3500.0f, true)
+            .compute_empty_weight_frac() == Catch::Approx(0.59f).margin(0.01f));
   }
 
   SECTION("Sailplane - Powered") {
-    REQUIRE(empty_weight_frac_sizer(AircraftType::SailplanePowered, 3500, false)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::SailplanePowered, 3500.0f, false)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.61).margin(0.01));
+            Catch::Approx(0.61f).margin(0.01f));
 
-    REQUIRE(empty_weight_frac_sizer(AircraftType::SailplanePowered, 3500, true)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::SailplanePowered, 3500.0f, true)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.63).margin(0.01));
+            Catch::Approx(0.63f).margin(0.01f));
   }
 
   SECTION("Homebuilt - Metal / Wood") {
     REQUIRE(
-        empty_weight_frac_sizer(AircraftType::HomebuiltMetalOrWood, 3500, false)
-            .compute_empty_weight_frac() == Catch::Approx(0.57).margin(0.01));
+        empty_weight_frac_sizer(AircraftType::HomebuiltMetalOrWood, 3500.0f, false)
+            .compute_empty_weight_frac() == Catch::Approx(0.57f).margin(0.01f));
 
     REQUIRE(
-        empty_weight_frac_sizer(AircraftType::HomebuiltMetalOrWood, 3500, true)
-            .compute_empty_weight_frac() == Catch::Approx(0.59).margin(0.01));
+        empty_weight_frac_sizer(AircraftType::HomebuiltMetalOrWood, 3500.0f, true)
+            .compute_empty_weight_frac() == Catch::Approx(0.59f).margin(0.01f));
   }
 
   SECTION("Homebuilt - Composite") {
     REQUIRE(
-        empty_weight_frac_sizer(AircraftType::HomebuiltComposite, 3500, false)
-            .compute_empty_weight_frac() == Catch::Approx(0.55).margin(0.01));
+        empty_weight_frac_sizer(AircraftType::HomebuiltComposite, 3500.0f, false)
+            .compute_empty_weight_frac() == Catch::Approx(0.55f).margin(0.01f));
 
     REQUIRE(
-        empty_weight_frac_sizer(AircraftType::HomebuiltComposite, 3500, true)
-            .compute_empty_weight_frac() == Catch::Approx(0.57).margin(0.01));
+        empty_weight_frac_sizer(AircraftType::HomebuiltComposite, 3500.0f, true)
+            .compute_empty_weight_frac() == Catch::Approx(0.57f).margin(0.01f));
   }
 
   SECTION("General Aviation - Single Engine") {
     REQUIRE(
-        empty_weight_frac_sizer(AircraftType::GeneralSingleEngine, 3500, false)
-            .compute_empty_weight_frac() == Catch::Approx(0.54).margin(0.01));
+        empty_weight_frac_sizer(AircraftType::GeneralSingleEngine, 3500.0f, false)
+            .compute_empty_weight_frac() == Catch::Approx(0.54f).margin(0.01f));
 
     REQUIRE(
-        empty_weight_frac_sizer(AircraftType::GeneralSingleEngine, 3500, true)
-            .compute_empty_weight_frac() == Catch::Approx(0.56).margin(0.01));
+        empty_weight_frac_sizer(AircraftType::GeneralSingleEngine, 3500.0f, true)
+            .compute_empty_weight_frac() == Catch::Approx(0.56f).margin(0.01f));
   }
 
   SECTION("General Aviation - Twin Engine") {
     REQUIRE(
-        empty_weight_frac_sizer(AircraftType::GeneralTwinEngine, 3500, false)
-            .compute_empty_weight_frac() == Catch::Approx(0.67).margin(0.01));
+        empty_weight_frac_sizer(AircraftType::GeneralTwinEngine, 3500.0f, false)
+            .compute_empty_weight_frac() == Catch::Approx(0.67f).margin(0.01f));
 
-    REQUIRE(empty_weight_frac_sizer(AircraftType::GeneralTwinEngine, 3500, true)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::GeneralTwinEngine, 3500.0f, true)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.69).margin(0.01));
+            Catch::Approx(0.69f).margin(0.01f));
   }
 
   SECTION("Agricultural") {
-    REQUIRE(empty_weight_frac_sizer(AircraftType::Agricultural, 3500, false)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::Agricultural, 3500.0f, false)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.58).margin(0.01));
+            Catch::Approx(0.58f).margin(0.01f));
 
-    REQUIRE(empty_weight_frac_sizer(AircraftType::Agricultural, 3500, true)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::Agricultural, 3500.0f, true)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.60).margin(0.01));
+            Catch::Approx(0.60f).margin(0.01f));
   }
 
   SECTION("Twin Turboprop") {
-    REQUIRE(empty_weight_frac_sizer(AircraftType::TwinTurboprop, 3500, false)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::TwinTurboprop, 3500.0f, false)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.64).margin(0.01));
+            Catch::Approx(0.64f).margin(0.01f));
 
-    REQUIRE(empty_weight_frac_sizer(AircraftType::TwinTurboprop, 3500, true)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::TwinTurboprop, 3500.0f, true)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.66).margin(0.01));
+            Catch::Approx(0.66f).margin(0.01f));
   }
 
   SECTION("Flying Boat") {
-    REQUIRE(empty_weight_frac_sizer(AircraftType::FlyingBoat, 3500, false)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::FlyingBoat, 3500.0f, false)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.72).margin(0.01));
+            Catch::Approx(0.72f).margin(0.01f));
 
-    REQUIRE(empty_weight_frac_sizer(AircraftType::FlyingBoat, 3500, true)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::FlyingBoat, 3500.0f, true)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.75).margin(0.01));
+            Catch::Approx(0.75f).margin(0.01f));
   }
 
   SECTION("Jet Trainer") {
-    REQUIRE(empty_weight_frac_sizer(AircraftType::JetTrainer, 3500, false)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::JetTrainer, 3500.0f, false)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.70).margin(0.01));
+            Catch::Approx(0.70f).margin(0.01f));
 
-    REQUIRE(empty_weight_frac_sizer(AircraftType::JetTrainer, 3500, true)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::JetTrainer, 3500.0f, true)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.73).margin(0.01));
+            Catch::Approx(0.73f).margin(0.01f));
   }
 
   SECTION("Jet Fighter") {
-    REQUIRE(empty_weight_frac_sizer(AircraftType::JetFighter, 3500, false)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::JetFighter, 3500.0f, false)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.81).margin(0.01));
+            Catch::Approx(0.81f).margin(0.01f));
 
-    REQUIRE(empty_weight_frac_sizer(AircraftType::JetFighter, 3500, true)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::JetFighter, 3500.0f, true)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.85).margin(0.01));
+            Catch::Approx(0.85f).margin(0.01f));
   }
 
   SECTION("Military Cargo / Bomber") {
-    REQUIRE(empty_weight_frac_sizer(AircraftType::MilitaryCargoOrBomber, 3500,
+    REQUIRE(empty_weight_frac_sizer(AircraftType::MilitaryCargoOrBomber, 3500.0f,
                                     false)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.53).margin(0.01));
+            Catch::Approx(0.53f).margin(0.01f));
 
     REQUIRE(
-        empty_weight_frac_sizer(AircraftType::MilitaryCargoOrBomber, 3500, true)
-            .compute_empty_weight_frac() == Catch::Approx(0.55).margin(0.01));
+        empty_weight_frac_sizer(AircraftType::MilitaryCargoOrBomber, 3500.0f, true)
+            .compute_empty_weight_frac() == Catch::Approx(0.55f).margin(0.01f));
   }
 
   SECTION("Jet Transport") {
-    REQUIRE(empty_weight_frac_sizer(AircraftType::JetTransport, 3500, false)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::JetTransport, 3500.0f, false)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.63).margin(0.01));
+            Catch::Approx(0.63f).margin(0.01f));
 
-    REQUIRE(empty_weight_frac_sizer(AircraftType::JetTransport, 3500, true)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::JetTransport, 3500.0f, true)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.65).margin(0.01));
+            Catch::Approx(0.65f).margin(0.01f));
   }
 
   SECTION("UAV - Tac Recce and UCAV") {
     REQUIRE(
-        empty_weight_frac_sizer(AircraftType::UAVTacRecceAndUCAV, 3500, false)
-            .compute_empty_weight_frac() == Catch::Approx(0.45).margin(0.01));
+        empty_weight_frac_sizer(AircraftType::UAVTacRecceAndUCAV, 3500.0f, false)
+            .compute_empty_weight_frac() == Catch::Approx(0.45f).margin(0.01f));
 
     REQUIRE(
-        empty_weight_frac_sizer(AircraftType::UAVTacRecceAndUCAV, 3500, true)
-            .compute_empty_weight_frac() == Catch::Approx(0.47).margin(0.01));
+        empty_weight_frac_sizer(AircraftType::UAVTacRecceAndUCAV, 3500.0f, true)
+            .compute_empty_weight_frac() == Catch::Approx(0.47f).margin(0.01f));
   }
 
   SECTION("UAV - High Altitude") {
-    REQUIRE(empty_weight_frac_sizer(AircraftType::UAVHighAltitude, 3500, false)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::UAVHighAltitude, 3500.0f, false)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.63).margin(0.01));
+            Catch::Approx(0.63f).margin(0.01f));
 
-    REQUIRE(empty_weight_frac_sizer(AircraftType::UAVHighAltitude, 3500, true)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::UAVHighAltitude, 3500.0f, true)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.66).margin(0.01));
+            Catch::Approx(0.66f).margin(0.01f));
   }
 
   SECTION("UAV - Small") {
-    REQUIRE(empty_weight_frac_sizer(AircraftType::UAVSmall, 3500, false)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::UAVSmall, 3500.0f, false)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.59).margin(0.01));
+            Catch::Approx(0.59f).margin(0.01f));
 
-    REQUIRE(empty_weight_frac_sizer(AircraftType::UAVSmall, 3500, true)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::UAVSmall, 3500.0f, true)
                 .compute_empty_weight_frac() ==
-            Catch::Approx(0.62).margin(0.01));
+            Catch::Approx(0.62f).margin(0.01f));
   }
 
   SECTION("Invalid Requirement Arguments") {
@@ -223,17 +223,17 @@ TEST_CASE("Empty Weight Fraction Calculations", "[compute_empty_weight_frac]") {
 TEST_CASE("Fuel Fraction Calculation", "[compute_fuel_frac]") {
   SECTION("Turbo Jet") {
     REQUIRE(fuel_frac_sizer(EngineType::PureTurbojet, {1, 1, 1, 1, 1})
-                .compute_fuel_frac() == Catch::Approx(0.29).margin(0.01));
+                .compute_fuel_frac() == Catch::Approx(0.29f).margin(0.01f));
   }
 
   SECTION("Low-Bypass Turbofan") {
     REQUIRE(fuel_frac_sizer(EngineType::LowBypassTurbofan, {1, 1, 1, 1, 1})
-                .compute_fuel_frac() == Catch::Approx(0.27).margin(0.01));
+                .compute_fuel_frac() == Catch::Approx(0.27f).margin(0.01f));
   }
 
   SECTION("High-Bypass Turbofan") {
     REQUIRE(fuel_frac_sizer(EngineType::HighBypassTurbofan, {1, 1, 1, 1, 1})
-                .compute_fuel_frac() == Catch::Approx(0.18).margin(0.01));
+                .compute_fuel_frac() == Catch::Approx(0.18f).margin(0.01f));
   }
 
   SECTION("Invalid Mission Count Arguments") {
