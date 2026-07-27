@@ -1,14 +1,14 @@
 #include <iostream>
 #include <weights.hpp>
 
-int main (int argc, char *argv[]) {
-  AircraftConfig config = { AircraftType::HomebuiltMetalOrWood, false };
-  AircraftRequirements reqs = { 0, EngineType::HighBypassTurbofan, 0, 0, 0, 0, 3500 };
-  MissionLegs mission = { 1, 1, 1, 1, 1 };
-  float payload_weight = 0.0f;
+int main() {
+  AircraftConfig config = {AircraftType::HomebuiltMetalOrWood, false};
+  AircraftRequirements reqs = {
+      1.0f, EngineType::HighBypassTurbofan, 1.0f, 1.0f, 1.0f, 0.0f, 3500.0f};
+  MissionLegs mission = {1, 1, 1, 1, 1};
 
-  InitialSizingInput input = { config, reqs, mission, payload_weight };
+  InitialAircraftSizing sizing{config, reqs, mission, 100.0f};
 
-  float frac = compute_empty_weight_frac(input);
+  float frac = sizing.compute_initial_weight();
   std::cout << frac << "\n";
 }
