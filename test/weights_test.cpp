@@ -1,49 +1,52 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <limits>
+#include <padt/weights.hpp>
 #include <stdexcept>
-#include <weights.hpp>
 
 namespace {
 InitialAircraftSizing empty_weight_frac_sizer(AircraftType aircraft_type,
                                               float design_weight,
                                               bool swing_wing) {
   return {
-      {aircraft_type, swing_wing},
-      {0.0f, EngineType::PureTurbojet, 0.0f, 0.0f, 0.0f, 0.0f, design_weight},
+      {aircraft_type, EngineType::PureTurbojet, swing_wing},
+      {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, design_weight},
       {1, 1, 1, 1, 1},
       0.0f};
 }
 
 InitialAircraftSizing fuel_frac_sizer(EngineType engine_type,
                                       MissionLegs mission) {
-  return {{AircraftType::JetFighter, false},
-          {15000.0f, engine_type, 300.0f, 15.0f, 18000.0f, 0.0f, 3500.0f},
+  return {{AircraftType::JetFighter, engine_type, false},
+          {15000.0f, 300.0f, 15.0f, 18000.0f, 0.0f, 3500.0f},
           mission,
           0.0f};
 }
 
 InitialAircraftSizing fuel_frac_sizer(AircraftRequirements reqs) {
-  return {{AircraftType::JetFighter, false}, reqs, {1, 1, 1, 1, 1}, 0.0f};
+  return {{AircraftType::JetFighter, EngineType::HighBypassTurbofan, false},
+          reqs,
+          {1, 1, 1, 1, 1},
+          0.0f};
 }
 
 InitialAircraftSizing initial_weight_sizer(AircraftType aircraft_type,
                                            bool swing_wing, float design_weight,
                                            float payload_weight) {
-  return {{aircraft_type, swing_wing},
-          {15000.0f, EngineType::HighBypassTurbofan, 300.0f, 15.0f, 18000.0f,
-           0.0f, design_weight},
+  return {{aircraft_type, EngineType::HighBypassTurbofan, swing_wing},
+          {15000.0f, 300.0f, 15.0f, 18000.0f, 0.0f, design_weight},
           {1, 1, 1, 1, 1},
           payload_weight};
 }
 
 } // namespace
 
-TEST_CASE("Empty Weight Fraction Calculations", "[compute_empty_weight_frac]") {
+TEST_CASE("Empty Weight Fraction Computations", "[compute_empty_weight_frac]") {
   SECTION("Sailplane - Unpowered") {
-    REQUIRE(
-        empty_weight_frac_sizer(AircraftType::SailplaneUnpowered, 3500.0f, false)
-            .compute_empty_weight_frac() == Catch::Approx(0.57f).margin(0.01f));
+    REQUIRE(empty_weight_frac_sizer(AircraftType::SailplaneUnpowered, 3500.0f,
+                                    false)
+                .compute_empty_weight_frac() ==
+            Catch::Approx(0.57f).margin(0.01f));
 
     REQUIRE(
         empty_weight_frac_sizer(AircraftType::SailplaneUnpowered, 3500.0f, true)
@@ -51,29 +54,32 @@ TEST_CASE("Empty Weight Fraction Calculations", "[compute_empty_weight_frac]") {
   }
 
   SECTION("Sailplane - Powered") {
-    REQUIRE(empty_weight_frac_sizer(AircraftType::SailplanePowered, 3500.0f, false)
-                .compute_empty_weight_frac() ==
-            Catch::Approx(0.61f).margin(0.01f));
+    REQUIRE(
+        empty_weight_frac_sizer(AircraftType::SailplanePowered, 3500.0f, false)
+            .compute_empty_weight_frac() == Catch::Approx(0.61f).margin(0.01f));
 
-    REQUIRE(empty_weight_frac_sizer(AircraftType::SailplanePowered, 3500.0f, true)
-                .compute_empty_weight_frac() ==
-            Catch::Approx(0.63f).margin(0.01f));
+    REQUIRE(
+        empty_weight_frac_sizer(AircraftType::SailplanePowered, 3500.0f, true)
+            .compute_empty_weight_frac() == Catch::Approx(0.63f).margin(0.01f));
   }
 
   SECTION("Homebuilt - Metal / Wood") {
-    REQUIRE(
-        empty_weight_frac_sizer(AircraftType::HomebuiltMetalOrWood, 3500.0f, false)
-            .compute_empty_weight_frac() == Catch::Approx(0.57f).margin(0.01f));
+    REQUIRE(empty_weight_frac_sizer(AircraftType::HomebuiltMetalOrWood, 3500.0f,
+                                    false)
+                .compute_empty_weight_frac() ==
+            Catch::Approx(0.57f).margin(0.01f));
 
-    REQUIRE(
-        empty_weight_frac_sizer(AircraftType::HomebuiltMetalOrWood, 3500.0f, true)
-            .compute_empty_weight_frac() == Catch::Approx(0.59f).margin(0.01f));
+    REQUIRE(empty_weight_frac_sizer(AircraftType::HomebuiltMetalOrWood, 3500.0f,
+                                    true)
+                .compute_empty_weight_frac() ==
+            Catch::Approx(0.59f).margin(0.01f));
   }
 
   SECTION("Homebuilt - Composite") {
-    REQUIRE(
-        empty_weight_frac_sizer(AircraftType::HomebuiltComposite, 3500.0f, false)
-            .compute_empty_weight_frac() == Catch::Approx(0.55f).margin(0.01f));
+    REQUIRE(empty_weight_frac_sizer(AircraftType::HomebuiltComposite, 3500.0f,
+                                    false)
+                .compute_empty_weight_frac() ==
+            Catch::Approx(0.55f).margin(0.01f));
 
     REQUIRE(
         empty_weight_frac_sizer(AircraftType::HomebuiltComposite, 3500.0f, true)
@@ -81,13 +87,15 @@ TEST_CASE("Empty Weight Fraction Calculations", "[compute_empty_weight_frac]") {
   }
 
   SECTION("General Aviation - Single Engine") {
-    REQUIRE(
-        empty_weight_frac_sizer(AircraftType::GeneralSingleEngine, 3500.0f, false)
-            .compute_empty_weight_frac() == Catch::Approx(0.54f).margin(0.01f));
+    REQUIRE(empty_weight_frac_sizer(AircraftType::GeneralSingleEngine, 3500.0f,
+                                    false)
+                .compute_empty_weight_frac() ==
+            Catch::Approx(0.54f).margin(0.01f));
 
-    REQUIRE(
-        empty_weight_frac_sizer(AircraftType::GeneralSingleEngine, 3500.0f, true)
-            .compute_empty_weight_frac() == Catch::Approx(0.56f).margin(0.01f));
+    REQUIRE(empty_weight_frac_sizer(AircraftType::GeneralSingleEngine, 3500.0f,
+                                    true)
+                .compute_empty_weight_frac() ==
+            Catch::Approx(0.56f).margin(0.01f));
   }
 
   SECTION("General Aviation - Twin Engine") {
@@ -95,9 +103,9 @@ TEST_CASE("Empty Weight Fraction Calculations", "[compute_empty_weight_frac]") {
         empty_weight_frac_sizer(AircraftType::GeneralTwinEngine, 3500.0f, false)
             .compute_empty_weight_frac() == Catch::Approx(0.67f).margin(0.01f));
 
-    REQUIRE(empty_weight_frac_sizer(AircraftType::GeneralTwinEngine, 3500.0f, true)
-                .compute_empty_weight_frac() ==
-            Catch::Approx(0.69f).margin(0.01f));
+    REQUIRE(
+        empty_weight_frac_sizer(AircraftType::GeneralTwinEngine, 3500.0f, true)
+            .compute_empty_weight_frac() == Catch::Approx(0.69f).margin(0.01f));
   }
 
   SECTION("Agricultural") {
@@ -151,14 +159,15 @@ TEST_CASE("Empty Weight Fraction Calculations", "[compute_empty_weight_frac]") {
   }
 
   SECTION("Military Cargo / Bomber") {
-    REQUIRE(empty_weight_frac_sizer(AircraftType::MilitaryCargoOrBomber, 3500.0f,
-                                    false)
+    REQUIRE(empty_weight_frac_sizer(AircraftType::MilitaryCargoOrBomber,
+                                    3500.0f, false)
                 .compute_empty_weight_frac() ==
             Catch::Approx(0.53f).margin(0.01f));
 
-    REQUIRE(
-        empty_weight_frac_sizer(AircraftType::MilitaryCargoOrBomber, 3500.0f, true)
-            .compute_empty_weight_frac() == Catch::Approx(0.55f).margin(0.01f));
+    REQUIRE(empty_weight_frac_sizer(AircraftType::MilitaryCargoOrBomber,
+                                    3500.0f, true)
+                .compute_empty_weight_frac() ==
+            Catch::Approx(0.55f).margin(0.01f));
   }
 
   SECTION("Jet Transport") {
@@ -172,9 +181,10 @@ TEST_CASE("Empty Weight Fraction Calculations", "[compute_empty_weight_frac]") {
   }
 
   SECTION("UAV - Tac Recce and UCAV") {
-    REQUIRE(
-        empty_weight_frac_sizer(AircraftType::UAVTacRecceAndUCAV, 3500.0f, false)
-            .compute_empty_weight_frac() == Catch::Approx(0.45f).margin(0.01f));
+    REQUIRE(empty_weight_frac_sizer(AircraftType::UAVTacRecceAndUCAV, 3500.0f,
+                                    false)
+                .compute_empty_weight_frac() ==
+            Catch::Approx(0.45f).margin(0.01f));
 
     REQUIRE(
         empty_weight_frac_sizer(AircraftType::UAVTacRecceAndUCAV, 3500.0f, true)
@@ -182,13 +192,13 @@ TEST_CASE("Empty Weight Fraction Calculations", "[compute_empty_weight_frac]") {
   }
 
   SECTION("UAV - High Altitude") {
-    REQUIRE(empty_weight_frac_sizer(AircraftType::UAVHighAltitude, 3500.0f, false)
-                .compute_empty_weight_frac() ==
-            Catch::Approx(0.63f).margin(0.01f));
+    REQUIRE(
+        empty_weight_frac_sizer(AircraftType::UAVHighAltitude, 3500.0f, false)
+            .compute_empty_weight_frac() == Catch::Approx(0.63f).margin(0.01f));
 
-    REQUIRE(empty_weight_frac_sizer(AircraftType::UAVHighAltitude, 3500.0f, true)
-                .compute_empty_weight_frac() ==
-            Catch::Approx(0.66f).margin(0.01f));
+    REQUIRE(
+        empty_weight_frac_sizer(AircraftType::UAVHighAltitude, 3500.0f, true)
+            .compute_empty_weight_frac() == Catch::Approx(0.66f).margin(0.01f));
   }
 
   SECTION("UAV - Small") {
@@ -220,7 +230,7 @@ TEST_CASE("Empty Weight Fraction Calculations", "[compute_empty_weight_frac]") {
   }
 }
 
-TEST_CASE("Fuel Fraction Calculation", "[compute_fuel_frac]") {
+TEST_CASE("Fuel Fraction Computations", "[compute_fuel_frac]") {
   SECTION("Turbo Jet") {
     REQUIRE(fuel_frac_sizer(EngineType::PureTurbojet, {1, 1, 1, 1, 1})
                 .compute_fuel_frac() == Catch::Approx(0.29f).margin(0.01f));
@@ -274,38 +284,28 @@ TEST_CASE("Fuel Fraction Calculation", "[compute_fuel_frac]") {
 
     for (const float invalid_value : invalid_values) {
       auto reqs =
-          AircraftRequirements{invalid_value, EngineType::HighBypassTurbofan,
-                               300.0f,        15.0f,
-                               18000.0f,      0.0f,
-                               3500.0f};
+          AircraftRequirements{invalid_value, 300.0f, 15.0f,
+                               18000.0f,      0.0f,   3500.0f};
       REQUIRE_THROWS_AS(fuel_frac_sizer(reqs).compute_fuel_frac(),
                         std::invalid_argument);
 
-      reqs = {15000.0f,      EngineType::HighBypassTurbofan,
-              invalid_value, 15.0f,
-              18000.0f,      0.0f,
-              3500.0f};
+      reqs = {15000.0f, invalid_value, 15.0f,
+              18000.0f, 0.0f,          3500.0f};
       REQUIRE_THROWS_AS(fuel_frac_sizer(reqs).compute_fuel_frac(),
                         std::invalid_argument);
 
-      reqs = {15000.0f, EngineType::HighBypassTurbofan,
-              300.0f,   invalid_value,
-              18000.0f, 0.0f,
-              3500.0f};
+      reqs = {15000.0f, 300.0f, invalid_value, 18000.0f, 0.0f, 3500.0f};
       REQUIRE_THROWS_AS(fuel_frac_sizer(reqs).compute_fuel_frac(),
                         std::invalid_argument);
 
-      reqs = {15000.0f,      EngineType::HighBypassTurbofan,
-              300.0f,        15.0f,
-              invalid_value, 0.0f,
-              3500.0f};
+      reqs = {15000.0f, 300.0f, 15.0f, invalid_value, 0.0f, 3500.0f};
       REQUIRE_THROWS_AS(fuel_frac_sizer(reqs).compute_fuel_frac(),
                         std::invalid_argument);
     }
   }
 }
 
-TEST_CASE("Initial Weight Calculation", "[compute_initial_weight]") {
+TEST_CASE("Initial Weight Computations", "[compute_initial_weight]") {
   SECTION("Converges") {
     REQUIRE(initial_weight_sizer(AircraftType::JetTransport, false, 100000.0f,
                                  20000.0f)

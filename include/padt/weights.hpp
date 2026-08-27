@@ -35,13 +35,13 @@ enum class EngineType {
 // Aircraft type configuration
 struct AircraftConfig {
   AircraftType aircraft_type;
+  EngineType engine_type;
   bool is_swing_wing;
 };
 
 // Aircraft/mission requirements configuration
 struct AircraftRequirements {
   float R; // range [feet]
-  EngineType engine_type;
   float v;             // speed [feet/second]
   float ld;            // lift-to-drag [unitless]
   float loiter_time;   // loiter time [seconds]

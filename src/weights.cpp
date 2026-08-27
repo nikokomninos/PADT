@@ -1,4 +1,4 @@
-#include "weights.hpp"
+#include <padt/weights.hpp>
 
 #include <array>
 #include <cmath>
@@ -13,7 +13,7 @@ using FuelFrac = std::pair<float, float>;
 
 // Raymer Table 3.1 - "Empty Weight Fractions vs W_0"
 constexpr std::array<EmptyWeightFrac, static_cast<size_t>(AircraftType::Count)>
-    empty_weight_frac_table = {
+    empty_weight_frac_table{
         EmptyWeightFrac(0.86f, -0.05f), // SailplaneUnpowered
         EmptyWeightFrac(0.91f, -0.05f), // SailplanePowered
         EmptyWeightFrac(1.19f, -0.09f), // HomebuiltMetalOrWood
@@ -30,18 +30,19 @@ constexpr std::array<EmptyWeightFrac, static_cast<size_t>(AircraftType::Count)>
         EmptyWeightFrac(1.67f, -0.16f), // UAVTacRecceAndUCAV
         EmptyWeightFrac(2.75f, -0.18f), // UAVHighAltitude
         EmptyWeightFrac(0.97f, -0.06f), // UAVSmall
-};
+    };
 
 // Raymer Table 3.3 - "Specific Fuel Consumption, C [1/hr]"
 constexpr std::array<FuelFrac, static_cast<size_t>(EngineType::Count)>
-    fuel_frac_table = {
+    fuel_frac_table{
         FuelFrac(0.9f, 0.8f), // PureTurbojet
         FuelFrac(0.8f, 0.7f), // LowBypassTurbofan
         FuelFrac(0.5f, 0.4f), // HighBypassTurbofan
-};
+    };
 
 // Helper to check an argument for a positive count
-void require_positive(float value, std::string_view name) {
+// TODO put passed in value in error
+constexpr void require_positive(float value, std::string_view name) {
   if (!std::isfinite(value) || value <= 0.0f) {
     throw std::invalid_argument(std::string{name} +
                                 " must be greater than 0.0");
@@ -49,7 +50,8 @@ void require_positive(float value, std::string_view name) {
 }
 
 // Helper to check an argument for a nonzero count
-void require_nonzero_count(unsigned int value, std::string_view name) {
+// TODO put passed in value in error
+constexpr void require_nonzero_count(unsigned int value, std::string_view name) {
   if (value == 0) {
     throw std::invalid_argument(std::string{name} + " must be at least 1");
   }
@@ -62,7 +64,13 @@ InitialAircraftSizing::InitialAircraftSizing(AircraftConfig config,
                                              MissionLegs mission,
                                              float payload_weight)
     : m_config{config}, m_reqs{reqs}, m_mission{mission},
-      m_payload_weight{payload_weight} {}
+      m_payload_weight{payload_weight} {
+  if (config.aircraft_type == AircraftType::Count)
+    throw std::invalid_argument("invalid aircraft type provided");
+
+  if (config.engine_type == EngineType::Count)
+    throw std::invalid_argument("invalid engine type provided");
+}
 
 // Computes the empty weight fraction:
 //
@@ -129,18 +137,18 @@ float InitialAircraftSizing::compute_fuel_frac() const {
   require_positive(m_reqs.ld, "ld");
   require_positive(m_reqs.loiter_time, "loiter_time");
 
-  if (m_reqs.engine_type == EngineType::HighBypassTurbofan ||
-      m_reqs.engine_type == EngineType::LowBypassTurbofan ||
-      m_reqs.engine_type == EngineType::PureTurbojet) {
+  if (m_config.engine_type == EngineType::HighBypassTurbofan ||
+      m_config.engine_type == EngineType::LowBypassTurbofan ||
+      m_config.engine_type == EngineType::PureTurbojet) {
     ld_cruise = 0.866f * m_reqs.ld;
     ld_loiter = m_reqs.ld;
   }
 
   const auto C_cruise{
-      std::get<0>(fuel_frac_table[static_cast<size_t>(m_reqs.engine_type)]) /
+      std::get<0>(fuel_frac_table[static_cast<size_t>(m_config.engine_type)]) /
       3600.0f};
   const auto C_loiter{
-      std::get<1>(fuel_frac_table[static_cast<size_t>(m_reqs.engine_type)]) /
+      std::get<1>(fuel_frac_table[static_cast<size_t>(m_config.engine_type)]) /
       3600.0f};
 
   const auto fuel_frac_to = 0.970f * number_of_takeoffs;
@@ -178,7 +186,7 @@ float InitialAircraftSizing::compute_initial_weight() {
   require_positive(m_payload_weight, "payload_weight");
 
   auto err{1.0f};
-  auto iter{0u};
+  auto iter{0uz};
   auto initial_weight{m_reqs.design_weight};
 
   while (err >= tolerance) {
