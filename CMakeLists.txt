@@ -13,7 +13,7 @@ add_library(PADT
 
 add_library(PADT::PADT ALIAS PADT)
 
-target_compile_features(PADT PUBLIC cxx_std_20)
+target_compile_features(PADT PUBLIC cxx_std_23)
 
 set_target_properties(PADT PROPERTIES
     CXX_EXTENSIONS OFF

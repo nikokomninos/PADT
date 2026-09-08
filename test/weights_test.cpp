@@ -1,5 +1,6 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
 #include <limits>
 #include <padt/weights.hpp>
 #include <stdexcept>
@@ -10,9 +11,9 @@ InitialAircraftSizing empty_weight_frac_sizer(AircraftType aircraft_type,
                                               bool swing_wing) {
   return {
       {aircraft_type, EngineType::PureTurbojet, swing_wing},
-      {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, design_weight},
+      {15000.0f, 300.0f, 15.0f, 18000.0f, 0.0f, design_weight},
       {1, 1, 1, 1, 1},
-      0.0f};
+      1000.0f};
 }
 
 InitialAircraftSizing fuel_frac_sizer(EngineType engine_type,
@@ -20,14 +21,14 @@ InitialAircraftSizing fuel_frac_sizer(EngineType engine_type,
   return {{AircraftType::JetFighter, engine_type, false},
           {15000.0f, 300.0f, 15.0f, 18000.0f, 0.0f, 3500.0f},
           mission,
-          0.0f};
+          1000.0f};
 }
 
 InitialAircraftSizing fuel_frac_sizer(AircraftRequirements reqs) {
   return {{AircraftType::JetFighter, EngineType::HighBypassTurbofan, false},
           reqs,
           {1, 1, 1, 1, 1},
-          0.0f};
+          1000.0f};
 }
 
 InitialAircraftSizing initial_weight_sizer(AircraftType aircraft_type,
@@ -221,11 +222,10 @@ TEST_CASE("Empty Weight Fraction Computations", "[compute_empty_weight_frac]") {
     };
 
     for (const float invalid_value : invalid_values) {
-      REQUIRE_THROWS_AS(
+      REQUIRE_THROWS_WITH(
           empty_weight_frac_sizer(AircraftType::SailplaneUnpowered,
-                                  invalid_value, false)
-              .compute_empty_weight_frac(),
-          std::invalid_argument);
+                                  invalid_value, false),
+          "m_reqs.design_weight must be greater than 0.0");
     }
   }
 }
@@ -247,9 +247,8 @@ TEST_CASE("Fuel Fraction Computations", "[compute_fuel_frac]") {
   }
 
   SECTION("Invalid Mission Count Arguments") {
-    REQUIRE_THROWS_AS(
-        fuel_frac_sizer(EngineType::HighBypassTurbofan, {}).compute_fuel_frac(),
-        std::invalid_argument);
+    REQUIRE_THROWS_WITH(fuel_frac_sizer(EngineType::HighBypassTurbofan, {}),
+                        "m_mission.num_of_to must be at least 1");
 
     REQUIRE_THROWS_AS(
         fuel_frac_sizer(EngineType::HighBypassTurbofan, {0, 1, 1, 1, 1})
@@ -286,21 +285,17 @@ TEST_CASE("Fuel Fraction Computations", "[compute_fuel_frac]") {
       auto reqs =
           AircraftRequirements{invalid_value, 300.0f, 15.0f,
                                18000.0f,      0.0f,   3500.0f};
-      REQUIRE_THROWS_AS(fuel_frac_sizer(reqs).compute_fuel_frac(),
-                        std::invalid_argument);
+      REQUIRE_THROWS_AS(fuel_frac_sizer(reqs), std::invalid_argument);
 
       reqs = {15000.0f, invalid_value, 15.0f,
               18000.0f, 0.0f,          3500.0f};
-      REQUIRE_THROWS_AS(fuel_frac_sizer(reqs).compute_fuel_frac(),
-                        std::invalid_argument);
+      REQUIRE_THROWS_AS(fuel_frac_sizer(reqs), std::invalid_argument);
 
       reqs = {15000.0f, 300.0f, invalid_value, 18000.0f, 0.0f, 3500.0f};
-      REQUIRE_THROWS_AS(fuel_frac_sizer(reqs).compute_fuel_frac(),
-                        std::invalid_argument);
+      REQUIRE_THROWS_AS(fuel_frac_sizer(reqs), std::invalid_argument);
 
       reqs = {15000.0f, 300.0f, 15.0f, invalid_value, 0.0f, 3500.0f};
-      REQUIRE_THROWS_AS(fuel_frac_sizer(reqs).compute_fuel_frac(),
-                        std::invalid_argument);
+      REQUIRE_THROWS_AS(fuel_frac_sizer(reqs), std::invalid_argument);
     }
   }
 }
@@ -323,10 +318,9 @@ TEST_CASE("Initial Weight Computations", "[compute_initial_weight]") {
     };
 
     for (const float invalid_value : invalid_values) {
-      REQUIRE_THROWS_AS(initial_weight_sizer(AircraftType::JetTransport, false,
-                                             100000.0f, invalid_value)
-                            .compute_initial_weight(),
-                        std::invalid_argument);
+      REQUIRE_THROWS_WITH(initial_weight_sizer(AircraftType::JetTransport,
+                                               false, 100000.0f, invalid_value),
+                          "m_payload_weight must be greater than 0.0");
     }
   }
 

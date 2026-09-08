@@ -40,7 +40,7 @@ inline constexpr std::array<FuelFrac, 3> fuel_frac_table{
 
 // Helper to check an argument for a positive count
 // TODO put passed in value in error
-constexpr void require_positive(float value, std::string_view name) {
+void require_positive(float value, std::string_view name) {
   if (!std::isfinite(value) || value <= 0.0f) {
     throw std::invalid_argument(std::string{name} +
                                 " must be greater than 0.0");
@@ -49,7 +49,7 @@ constexpr void require_positive(float value, std::string_view name) {
 
 // Helper to check an argument for a nonzero count
 // TODO put passed in value in error
-constexpr void require_nonzero(unsigned int value, std::string_view name) {
+void require_nonzero(unsigned int value, std::string_view name) {
   if (value == 0) {
     throw std::invalid_argument(std::string{name} + " must be at least 1");
   }
@@ -57,17 +57,30 @@ constexpr void require_nonzero(unsigned int value, std::string_view name) {
 
 } // namespace
 
+#define REQUIRE_POSITIVE(value) require_positive((value), #value)
+#define REQUIRE_NONZERO(value) require_nonzero((value), #value)
+
 InitialAircraftSizing::InitialAircraftSizing(AircraftConfig config,
                                              AircraftRequirements reqs,
                                              MissionLegs mission,
                                              float payload_weight)
     : m_config{config}, m_reqs{reqs}, m_mission{mission},
-      m_payload_weight{payload_weight} {}
+      m_payload_weight{payload_weight} {
+  REQUIRE_POSITIVE(m_reqs.design_weight);
+  REQUIRE_POSITIVE(m_reqs.R);
+  REQUIRE_POSITIVE(m_reqs.v);
+  REQUIRE_POSITIVE(m_reqs.ld);
+  REQUIRE_POSITIVE(m_reqs.loiter_time);
+  REQUIRE_NONZERO(m_mission.num_of_to);
+  REQUIRE_NONZERO(m_mission.num_of_climb);
+  REQUIRE_NONZERO(m_mission.num_of_cruise);
+  REQUIRE_NONZERO(m_mission.num_of_loiter);
+  REQUIRE_NONZERO(m_mission.num_of_ldg);
+  REQUIRE_POSITIVE(m_payload_weight);
+}
 
 float InitialAircraftSizing::compute_empty_weight_frac() const {
   const auto W_0{m_reqs.design_weight};
-
-  require_positive(W_0, "design_weight");
 
   const auto A{std::get<0>(
       empty_weight_frac_table[static_cast<size_t>(m_config.aircraft_type)])};
@@ -90,16 +103,6 @@ float InitialAircraftSizing::compute_fuel_frac() const {
   // are implemented
   auto ld_cruise{0.0f};
   auto ld_loiter{0.0f};
-
-  require_nonzero(number_of_takeoffs, "num_of_to");
-  require_nonzero(number_of_climbs, "num_of_climb");
-  require_nonzero(number_of_cruises, "num_of_cruise");
-  require_nonzero(number_of_loiters, "num_of_loiter");
-  require_nonzero(number_of_landings, "num_of_ldg");
-  require_positive(m_reqs.R, "R");
-  require_positive(m_reqs.v, "v");
-  require_positive(m_reqs.ld, "ld");
-  require_positive(m_reqs.loiter_time, "loiter_time");
 
   if (m_config.engine_type == EngineType::HighBypassTurbofan ||
       m_config.engine_type == EngineType::LowBypassTurbofan ||
@@ -139,8 +142,6 @@ float InitialAircraftSizing::compute_initial_weight() {
   constexpr auto tolerance{1e-4f};
   constexpr auto max_iterations{20uz};
 
-  require_positive(m_payload_weight, "payload_weight");
-
   auto err{1.0f};
   auto iter{0uz};
   auto initial_weight{m_reqs.design_weight};
@@ -170,3 +171,6 @@ float InitialAircraftSizing::compute_initial_weight() {
 
   return initial_weight;
 }
+
+#undef REQUIRE_NONZERO
+#undef REQUIRE_POSITIVE
