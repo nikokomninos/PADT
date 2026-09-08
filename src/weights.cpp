@@ -135,17 +135,9 @@ float InitialAircraftSizing::compute_fuel_frac() const {
   return fuel_frac;
 }
 
-// Iteratively solves for the initial aircraft weight:
-//
-// W_0 = W_payload / (1 - W_f / W_0 - W_e / W_0)
-//
-// The estimate starts from the configured design weight and updates that
-// working design weight until the relative change is within tolerance. Throws
-// if the inputs cannot produce a positive finite solution or if the estimate
-// does not converge within the iteration limit.
 float InitialAircraftSizing::compute_initial_weight() {
   constexpr auto tolerance{1e-4f};
-  constexpr auto max_iterations{20u};
+  constexpr auto max_iterations{20uz};
 
   require_positive(m_payload_weight, "payload_weight");
 
