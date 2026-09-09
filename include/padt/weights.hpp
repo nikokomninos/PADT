@@ -39,12 +39,12 @@ struct AircraftConfig {
 
 // Aircraft/mission requirements configuration
 struct AircraftRequirements {
-  float R;             // range [feet]
-  float v;             // speed [feet/second]
-  float ld;            // lift-to-drag [unitless]
-  float loiter_time;   // loiter time [seconds]
-  float cruise_alt;    // cruise altitude [feet]
-  float design_weight; // design weight [lbs]
+  double R;             // range [feet]
+  double v;             // speed [feet/second]
+  double ld;            // lift-to-drag [unitless]
+  double loiter_time;   // loiter time [seconds]
+  double cruise_alt;    // cruise altitude [feet]
+  double design_weight; // design weight [lbs]
 };
 
 // Mission leg numbers and types
@@ -64,12 +64,12 @@ struct MissionLegs {
 class InitialAircraftSizing {
 public:
   InitialAircraftSizing(AircraftConfig config, AircraftRequirements reqs,
-                        MissionLegs mission, float payload_weight);
+                        MissionLegs mission, double payload_weight);
 
   /**
-   * @brief Computes the empty weight fraction:
+   * @brief Computes the empty weight fraction
    *
-   * W_e / W_0 = A * (W_0)^C * K_s
+   * @details W_e / W_0 = A * (W_0)^C * K_s
    *
    * Where:
    *
@@ -80,12 +80,12 @@ public:
    *
    * @note Pre-condition: W_0 is positive
    */
-  float compute_empty_weight_frac() const;
+  double compute_empty_weight_frac() const;
 
   /**
    * @brief Computes the fuel fraction
    *
-   * W_f = 1.06(1 - W_mission)
+   * @details W_f = 1.06(1 - W_mission)
    *
    * W_mission = W_to * W_climb * W_cruise * W_loiter * W_ldg
    *
@@ -114,12 +114,12 @@ public:
    * ld is positive
    * loiter_time is positive
    */
-  float compute_fuel_frac() const;
+  double compute_fuel_frac() const;
 
   /**
-   * @brief Iteratively solves for the initial aircraft weight:
+   * @brief Iteratively solves for the initial aircraft weight
    *
-   * W_0 = W_payload / (1 - W_f / W_0 - W_e / W_0)
+   * @details W_0 = W_payload / (1 - W_f / W_0 - W_e / W_0)
    *
    * The estimate starts from the configured design weight and updates that
    * working design weight until the relative change is within tolerance. Throws
@@ -128,16 +128,16 @@ public:
    *
    * @note Pre-condition: payload_weight is positive
    */
-  float compute_initial_weight();
+  double compute_initial_weight();
 
   const AircraftConfig &config() const;
   const AircraftRequirements &reqs() const;
   const MissionLegs &mission() const;
-  const float &payload_weight() const;
+  const double &payload_weight() const;
 
 private:
   AircraftConfig m_config;
   AircraftRequirements m_reqs;
   MissionLegs m_mission;
-  float m_payload_weight;
+  double m_payload_weight;
 };
