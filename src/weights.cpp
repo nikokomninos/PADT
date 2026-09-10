@@ -148,10 +148,10 @@ double InitialAircraftSizing::compute_fuel_frac() const {
 
 double InitialAircraftSizing::compute_initial_weight() {
   constexpr auto tolerance{1e-4};
-  constexpr auto max_iterations{20uz};
+  constexpr std::size_t max_iterations{20};
 
   auto err{1.0};
-  auto iter{0uz};
+  std::size_t iter{0};
   auto initial_weight{m_reqs.design_weight};
 
   while (err >= tolerance) {
