@@ -8,6 +8,7 @@ project(
 )
 
 add_library(PADT
+    src/atmosphere.cpp
     src/weights.cpp
 )
 
@@ -43,6 +44,7 @@ if(BUILD_TESTING)
   FetchContent_MakeAvailable(Catch2)
 
   add_executable(PADT_tests
+        test/atmosphere_test.cpp
         test/weights_test.cpp
     )
 

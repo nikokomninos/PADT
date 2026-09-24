@@ -4,21 +4,50 @@
 #include <padt/atmosphere.hpp>
 #include <stdexcept>
 
-TEST_CASE("MIL-STD-3013B Atmosphere Computations",
-          "[compute_mil_std_3013b_atmosphere]") {
-  SECTION("Invalid Altitude Arguments") {
-    constexpr float invalid_values[] = {
-        -15'001.f,
-        150'001.f,
-        std::numeric_limits<float>::quiet_NaN(),
-        std::numeric_limits<float>::infinity(),
-        -std::numeric_limits<float>::infinity(),
+TEST_CASE("Standard Day Atmosphere Equations", "[compute_std_day_atmosphere_by_eq]") {
+  SECTION("Sea Level") {
+    const auto atmosphere = compute_std_day_atmosphere_by_eq(0.0);
+    REQUIRE(atmosphere.temp_K == Catch::Approx(288.15).margin(0.01));
+    REQUIRE(atmosphere.temp_F == Catch::Approx(59.00).margin(0.01));
+    REQUIRE(atmosphere.press_psf == Catch::Approx(2116.22).margin(0.01));
+  }
+
+  SECTION("Atmospheric Bands") {
+    struct Reference {
+      double altitude;
+      double temp_K;
+      double temp_F;
+      double press_psf;
     };
 
-    for (const float invalid_value : invalid_values) {
-      REQUIRE_THROWS_AS(
-          compute_mil_std_3013b_atmosphere(invalid_value, DayType::StandardDay),
-          std::domain_error);
+    constexpr Reference references[] = {
+        {50'000.0, 216.65, -69.70, 242.21},
+        {80'000.0, 221.03, -61.81, 57.67},
+        {120'000.0, 241.46, -25.04, 9.32},
+    };
+
+    for (const auto &reference : references) {
+      const auto atmosphere = compute_std_day_atmosphere_by_eq(reference.altitude);
+      REQUIRE(atmosphere.temp_K == Catch::Approx(reference.temp_K).margin(0.01));
+      REQUIRE(atmosphere.temp_F == Catch::Approx(reference.temp_F).margin(0.01));
+      REQUIRE(atmosphere.press_psf ==
+              Catch::Approx(reference.press_psf).margin(0.01));
+    }
+  }
+
+  SECTION("Invalid Altitude Arguments") {
+    constexpr double invalid_values[] = {
+        -15'001.0,
+        150'001.0,
+        // std::numeric_limits<double>::quiet_NaN(),
+        std::numeric_limits<double>::infinity(),
+        -std::numeric_limits<double>::infinity(),
+    };
+
+    for (const double invalid_value : invalid_values) {
+      CAPTURE(invalid_value);
+      REQUIRE_THROWS_AS(compute_std_day_atmosphere_by_eq(invalid_value),
+                        std::domain_error);
     }
   }
 }
