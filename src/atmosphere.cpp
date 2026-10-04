@@ -69,16 +69,16 @@ AtmosphericConditions interpolate_table(double altitude_ft,
       altitude_ft > table.back().alt_ft)
     throw std::domain_error("altitude is outside the atmosphere table range");
 
-  const auto upper = std::lower_bound(
+  const auto upper{std::lower_bound(
       table.begin(), table.end(), altitude_ft,
-      [](const Row &row, double altitude) { return row.alt_ft < altitude; });
-  const auto lower = upper->alt_ft == altitude_ft ? upper : upper - 1;
-  const double fraction = lower == upper ? 0.0
-                                         : (altitude_ft - lower->alt_ft) /
-                                               (upper->alt_ft - lower->alt_ft);
-  const auto value = [&](double Row::*member) {
+      [](const Row &row, double altitude) { return row.alt_ft < altitude; })};
+  const auto lower{upper->alt_ft == altitude_ft ? upper : upper - 1};
+  const double fraction{lower == upper ? 0.0
+                                       : (altitude_ft - lower->alt_ft) /
+                                             (upper->alt_ft - lower->alt_ft)};
+  const auto value{[&](double Row::*member) {
     return interpolate((*lower).*member, (*upper).*member, fraction);
-  };
+  }};
 
   AtmosphericConditions conditions{
       .alt_ft = altitude_ft,
