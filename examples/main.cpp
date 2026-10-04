@@ -1,6 +1,6 @@
 #include <iostream>
-#include <padt/weights.hpp>
 #include <padt/atmosphere.hpp>
+#include <padt/weights.hpp>
 
 int main() {
   // AircraftConfig config = {AircraftType::HomebuiltMetalOrWood,
@@ -14,11 +14,7 @@ int main() {
   // double frac = sizing.compute_initial_weight();
   // std::cout << frac << "\n";
 
-  auto atm = compute_std_day_atmosphere_by_eq(80'000.0);
-  std::cout <<
-    "Degrees K: " << atm.temp_K << "\n"
-    << "Degrees F: " << atm.temp_F << "\n"
-    << "Pressure psf: " << atm.press_psf << "\n"
-    << "\n";
+  auto atm = interpolate_atmospheric_conditions(50'000, DayType::Standard);
+  std::cout << atm.press_ratio.value() << "\n";
   return 0;
 }

@@ -1,30 +1,27 @@
 #pragma once
 
-enum class DayType { StandardDay };
+#include <optional>
 
-struct AtmosphereEQ {
-  double temp_K;
-  double temp_F;
-  double press_psf;
-};
+enum class DayType { Standard, Polar, Tropical, Hot };
 
-struct AtmosphereTable {
-  double alt_ft;
-  double alt_geom_ft;
+struct AtmosphericConditions {
+  double alt_ft; // Geopotential on standard day, pressure on all others
   double temp_F;
-  double temp_R;
-  double temp_C;
+  std::optional<double> temp_R = std::nullopt;
+  std::optional<double> temp_C = std::nullopt;
   double temp_K;
-  double temp_ratio;
-  double press_in_hg;
+  std::optional<double> temp_ratio = std::nullopt;
+  std::optional<double> press_in_hg = std::nullopt;
   double press_psf;
-  double press_ratio;
-  double density_slugs_ft3;
-  double density_ratio;
-  double speed_of_sound_ft_s;
-  double speed_of_sound_kts;
-  double Q_M2;
-  double viscosity_lb_sec_ft2;
+  std::optional<double> press_ratio = std::nullopt;
+  std::optional<double> density_slugs_ft3 = std::nullopt;
+  std::optional<double> density_ratio = std::nullopt;
+  std::optional<double> speed_of_sound_ft_s = std::nullopt;
+  std::optional<double> speed_of_sound_kts = std::nullopt;
+  std::optional<double> Q_M2 = std::nullopt;
+  std::optional<double> viscosity_lb_sec_ft2 = std::nullopt;
+  std::optional<double> alt_geopotential_ft = std::nullopt;
+  std::optional<double> alt_geom_ft = std::nullopt;
 };
 
 /**
@@ -35,8 +32,25 @@ struct AtmosphereTable {
  *
  * @throws std::domain_error if the altitude is below or above the possible
  * bounds for computation
+ *
+ * @return AtmosphericConditions, with only the altitude, temp in F, temp in K,
+ * and pressure in psf.
  */
-AtmosphereEQ compute_std_day_atmosphere_by_eq(double altitude);
+AtmosphericConditions compute_std_day_conditions(double geopotential_altitude);
 
-AtmosphereTable compute_std_atmosphere_by_table(double altitude,
-                                                DayType day_type);
+/**
+ * @brief Linearly interpolates the selected MIL-STD-3013B atmosphere table.
+ *
+ * @param altitude_ft Geopotential altitude for Standard Day, pressure altitude
+ * for Polar, Tropical, and Hot Days, in feet.
+ *
+ * @throws std::domain_error if altitude is nonfinite or outside the table
+ * range.
+ *
+ * @throws std::invalid_argument if day_type is unknown.
+ *
+ * @return All table fields; alt_geopotential_ft is unset for Standard Day,
+ * where alt_ft already represents geopotential altitude.
+ */
+AtmosphericConditions interpolate_atmospheric_conditions(double altitude_ft,
+                                                         DayType day_type);
