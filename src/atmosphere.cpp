@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <concepts>
 #include <padt/atmosphere.hpp>
 #include <stdexcept>
 #include <string>
@@ -62,7 +63,11 @@ double interpolate(double lower, double upper, double fraction) {
   return std::lerp(lower, upper, fraction);
 }
 
-template <typename Row, size_t N>
+template <typename T>
+concept RowType =
+    std::same_as<T, StandardTableRow> || std::same_as<T, NonStandardTableRow>;
+
+template <RowType Row, size_t N>
 AtmosphericConditions interpolate_table(double altitude_ft,
                                         const std::array<Row, N> &table) {
   if (!std::isfinite(altitude_ft) || altitude_ft < table.front().alt_ft ||
